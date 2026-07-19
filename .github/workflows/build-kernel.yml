@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug - runner CPU bilgisi
+      - name: Debug - CPU SYSINFO
         run: |
           echo "=== lscpu ==="
           lscpu
@@ -35,7 +35,7 @@ jobs:
           name: ${{ secrets.CACHIX_CACHE_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: Build custom kernel
+      - name: Kernel Building
         run: nix build .#customKernel --keep-going -j auto --cores 0 -L
 
       - name: Kernel Artifact Upload
