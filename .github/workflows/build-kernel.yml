@@ -4,46 +4,41 @@ on:
   push:
     paths:
       - "kernel/**"
+      - "flake.nix"
+      - "flake.lock"
       - ".github/workflows/build-kernel.yml"
   workflow_dispatch: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 360   # GH free/student runner hard cap, kernel build long surebilir
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug - repo icerigini listele
-        run: find kernel -type f
+      - name: Debug - runner CPU bilgisi
+        run: |
+          echo "=== lscpu ==="
+          lscpu
+          echo "=== /proc/cpuinfo (core) ==="
+          grep -m1 -A25 "^processor" /proc/cpuinfo
 
       - uses: cachix/install-nix-action@v31
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: |
             experimental-features = nix-command flakes
             max-jobs = auto
             cores = 0
 
-      # cachix-action hem substituter'i ekliyor hem de build sirasinda
-      # /nix/store'a yeni giren her seyi otomatik push ediyor (kernel
-      # patlasa bile llvm/toolchain gibi bagimliliklar cache'e biner,
-      # bir sonraki run onlari yeniden derlemez)
       - uses: cachix/cachix-action@v15
         with:
           name: ${{ secrets.CACHIX_CACHE_NAME }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build custom kernel
-        run: |
-          nix-build \
-            -E 'with import <nixpkgs> {}; callPackage ./kernel/kernel.nix {}' \
-            --keep-going \
-            -j auto \
-            --cores 0 \
-            -v
+        run: nix build .#customKernel --keep-going -j auto --cores 0 -L
 
-      - name: Upload kernel as artifact (yedek olarak)
+      - name: Kernel Artifact Upload
         if: always()
         uses: actions/upload-artifact@v4
         with:
