@@ -38,7 +38,7 @@ jobs:
             --keep-going \
             -j auto \
             --cores 0 \
-            -L
+            -v
 
       - name: Upload kernel as artifact (yedek olarak)
         if: always()
