@@ -64,6 +64,10 @@ in
   };
 }).overrideAttrs
   (old: {
+    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+      pkgs.llvmPackages.bintools
+    ];
+
     postConfigure = ''
       make $makeFlags LLVM=1 olddefconfig
 
