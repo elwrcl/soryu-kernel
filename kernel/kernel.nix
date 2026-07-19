@@ -69,13 +69,19 @@ in
 
       cfgPath="''${buildRoot:-.}/.config"
       if [ ! -f "$cfgPath" ]; then
-        echo "buildRoot ile bulunamadi, aranıyor..."
         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
       fi
 
+      echo "=== makeFlags ==="
+      echo "$makeFlags"
+      echo "=== CC / derleyici bilgisi ==="
+      echo "CC=$CC"
+      which "$CC" 2>/dev/null || true
+      "$CC" --version 2>/dev/null | head -3 || true
+
       echo "=== .config yolu: $cfgPath ==="
-      echo "=== LTO durumu (olddefconfig sonrasi) ==="
-      grep -E "^CONFIG_LTO" "$cfgPath"
+      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO durumu ==="
+      grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
       echo "=== end ==="
 
       grep -q '^CONFIG_LTO_CLANG_FULL=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_FULL olddefconfig sonrasi aktif degil"; exit 1; }
