@@ -47,7 +47,7 @@ let
     '';
   };
 in
-lib.makeOverridable pkgs.linuxManualConfig {
+(lib.makeOverridable pkgs.linuxManualConfig {
   stdenv = pkgs.llvmPackages.stdenv;
   src = patchedSrc;
 
@@ -62,4 +62,15 @@ lib.makeOverridable pkgs.linuxManualConfig {
     efiBootStub = true;
     ia32Emulation = true;
   };
-}
+}).overrideAttrs
+  (old: {
+    postConfigure = ''
+      make $makeFlags olddefconfig
+
+      echo "=== LTO Control ( after olddefconfig ) ==="
+      grep -E "^CONFIG_LTO" .config
+      echo "=== end ==="
+
+      grep -q '^CONFIG_LTO_CLANG_FULL=y$' .config || { echo "ERROR: LTO_CLANG_FULL olddefconfig not active"; exit 1; }
+    '';
+  })
