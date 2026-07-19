@@ -65,7 +65,7 @@ in
 }).overrideAttrs
   (old: {
     postConfigure = ''
-      make $makeFlags olddefconfig
+      make $makeFlags LLVM=1 olddefconfig
 
       cfgPath="''${buildRoot:-.}/.config"
       if [ ! -f "$cfgPath" ]; then
@@ -80,10 +80,10 @@ in
       "$CC" --version 2>/dev/null | head -3 || true
 
       echo "=== .config path: $cfgPath ==="
-      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO info ==="
-      grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
+      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO status ==="
+      grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_LD_IS_LLD|^CONFIG_AS_IS_LLVM|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
       echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig is not active after config"; exit 1; }
+      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig not applied after config"; exit 1; }
     '';
   })
