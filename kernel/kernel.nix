@@ -67,10 +67,17 @@ in
     postConfigure = ''
       make $makeFlags olddefconfig
 
-      echo "=== LTO Control ( after olddefconfig ) ==="
-      grep -E "^CONFIG_LTO" .config
+      cfgPath="''${buildRoot:-.}/.config"
+      if [ ! -f "$cfgPath" ]; then
+        echo "buildRoot ile bulunamadi, aranıyor..."
+        cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
+      fi
+
+      echo "=== .config yolu: $cfgPath ==="
+      echo "=== LTO durumu (olddefconfig sonrasi) ==="
+      grep -E "^CONFIG_LTO" "$cfgPath"
       echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_FULL=y$' .config || { echo "ERROR: LTO_CLANG_FULL olddefconfig not active"; exit 1; }
+      grep -q '^CONFIG_LTO_CLANG_FULL=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_FULL olddefconfig sonrasi aktif degil"; exit 1; }
     '';
   })
