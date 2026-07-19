@@ -74,16 +74,16 @@ in
 
       echo "=== makeFlags ==="
       echo "$makeFlags"
-      echo "=== CC / derleyici bilgisi ==="
+      echo "=== CC / compiler info ==="
       echo "CC=$CC"
       which "$CC" 2>/dev/null || true
       "$CC" --version 2>/dev/null | head -3 || true
 
-      echo "=== .config yolu: $cfgPath ==="
-      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO durumu ==="
+      echo "=== .config path: $cfgPath ==="
+      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO info ==="
       grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
       echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_FULL=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_FULL olddefconfig sonrasi aktif degil"; exit 1; }
+      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig is not active after config"; exit 1; }
     '';
   })
