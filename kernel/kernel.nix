@@ -69,12 +69,18 @@ in
     ];
 
     postConfigure = ''
-      make $makeFlags LLVM=1 olddefconfig
-
       cfgPath="''${buildRoot:-.}/.config"
       if [ ! -f "$cfgPath" ]; then
         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
       fi
+
+      echo "=== forcing CONFIG_LTO_CLANG_THIN before olddefconfig ==="
+      ./scripts/config --file "$cfgPath" \
+        --enable LTO_CLANG_THIN \
+        --disable LTO_CLANG_FULL \
+        --disable LTO_NONE
+
+      make $makeFlags LLVM=1 olddefconfig
 
       echo "=== makeFlags ==="
       echo "$makeFlags"
