@@ -52,7 +52,7 @@ in
   src = patchedSrc;
 
   version = "7.1.3-soryu";
-  modDirVersion = "7.1.3";
+  modDirVersion = "7.1.3-soryu-lfbmq-x86-64v2-lto";
   pname = "linux-soryu";
   configfile = ./lfbmq.config;
   allowImportFromDerivation = true;
@@ -74,26 +74,31 @@ in
         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
       fi
 
-      echo "=== forcing CONFIG_LTO_CLANG_THIN before olddefconfig ==="
+      echo "=== forcing LTO + STMFX/X86_X32_ABI + LOCALVERSION ==="
       ./scripts/config --file "$cfgPath" \
+        --disable PINCTRL_STMFX \
+        --disable MFD_STMFX \
+        --disable X86_X32_ABI \
         --enable LTO_CLANG_THIN \
         --disable LTO_CLANG_FULL \
-        --disable LTO_NONE
+        --disable LTO_NONE \
+        --set-str LOCALVERSION "-soryu-lfbmq-x86-64v2-lto"
 
       make $makeFlags LLVM=1 olddefconfig
+      make $makeFlags LLVM=1 olddefconfig
 
-      echo "=== makeFlags ==="
-      echo "$makeFlags"
-      echo "=== CC / compiler info ==="
-      echo "CC=$CC"
-      which "$CC" 2>/dev/null || true
-      "$CC" --version 2>/dev/null | head -3 || true
+          echo "=== makeFlags ==="
+          echo "$makeFlags"
+          echo "=== CC / compiler info ==="
+          echo "CC=$CC"
+          which "$CC" 2>/dev/null || true
+          "$CC" --version 2>/dev/null | head -3 || true
 
-      echo "=== .config path: $cfgPath ==="
-      echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO status ==="
-      grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_LD_IS_LLD|^CONFIG_AS_IS_LLVM|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
-      echo "=== end ==="
+          echo "=== .config path: $cfgPath ==="
+          echo "=== CC_IS_CLANG / HAS_LTO_CLANG / LTO status ==="
+          grep -E "^CONFIG_CC_IS_CLANG|^CONFIG_LD_IS_LLD|^CONFIG_AS_IS_LLVM|^CONFIG_HAS_LTO_CLANG|^CONFIG_ARCH_SUPPORTS_LTO_CLANG|^CONFIG_LTO" "$cfgPath"
+          echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig not applied after config"; exit 1; }
+          grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig not applied after config"; exit 1; }
     '';
   })
