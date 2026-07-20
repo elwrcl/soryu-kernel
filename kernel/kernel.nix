@@ -59,6 +59,8 @@ in
   extraMakeFlags = [
     "LLVM=1"
     "LD=${pkgs.llvmPackages.bintools}/bin/ld.lld"
+    "AR=${pkgs.llvmPackages.bintools}/bin/llvm-ar"
+    "NM=${pkgs.llvmPackages.bintools}/bin/llvm-nm"
   ];
 
   features = {
@@ -68,22 +70,24 @@ in
 }).overrideAttrs
   (old: {
     postConfigure = ''
-      make $makeFlags LLVM=1 LD=${pkgs.llvmPackages.bintools}/bin/ld.lld olddefconfig
+       make $makeFlags LLVM=1 LD=${pkgs.llvmPackages.bintools}/bin/ld.lld AR=${pkgs.llvmPackages.bintools}/bin/llvm-ar NM=${pkgs.llvmPackages.bintools}/bin/llvm-nm olddefconfig
 
-      cfgPath="''${buildRoot:-.}/.config"
-      if [ ! -f "$cfgPath" ]; then
-        cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
-      fi
+       cfgPath="''${buildRoot:-.}/.config"
+       if [ ! -f "$cfgPath" ]; then
+         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
+       fi
 
-      echo "=== LTO bagimlilik zinciri (tam durum) ==="
-      grep -E "CONFIG_(CC_IS_CLANG|LD_IS_LLD|AS_IS_LLVM|HAS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG_THIN|FTRACE_MCOUNT_USE_RECORDMCOUNT|FTRACE_MCOUNT_USE_OBJTOOL|KASAN\b|KASAN_HW_TAGS|KCOV\b|GCOV_KERNEL|DEBUG_INFO\b|CLANG_VERSION|LTO)\b" "$cfgPath"
-      echo "=== end ==="
+       echo "=== LTO bagimlilik zinciri (tam durum) ==="
+       grep -E "CONFIG_(CC_IS_CLANG|LD_IS_LLD|AS_IS_LLVM|HAS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG_THIN|FTRACE_MCOUNT_USE_RECORDMCOUNT|FTRACE_MCOUNT_USE_OBJTOOL|KASAN\b|KASAN_HW_TAGS|KCOV\b|GCOV_KERNEL|DEBUG_INFO\b|CLANG_VERSION|LTO)\b" "$cfgPath"
+       echo "=== end ==="
 
-      echo "=== AR/NM llvm testi ==="
-      ar --help 2>&1 | head -1
-      nm --help 2>&1 | head -1
-      echo "=== end ==="
+       echo "=== Gercek AR/NM testi ==="
+       echo "AR=$AR"
+      "$AR" --help 2>&1 | head -1
+       echo "NM=$NM"
+      "$NM" --help 2>&1 | head -1
+       echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig sonrasi aktif degil"; exit 1; }
+       grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig sonrasi aktif degil"; exit 1; }
     '';
   })
