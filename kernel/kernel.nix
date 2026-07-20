@@ -57,8 +57,8 @@ in
   stdenv = pkgs.llvmPackages.stdenv;
   src = patchedSrc;
 
-  version = "7.1.3-soryu-lfbmq-lto-x86_64v2";
-  modDirVersion = "7.1.3-soryu-lfbmq-lto-x86_64v2";
+  version = "7.1.3-soryu-lfbmq-lto-x86_64-v2";
+  modDirVersion = "7.1.3";
   pname = "linux-soryu";
   configfile = ./lfbmq.config;
   allowImportFromDerivation = true;
