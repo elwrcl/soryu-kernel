@@ -57,8 +57,8 @@ in
   stdenv = pkgs.llvmPackages.stdenv;
   src = patchedSrc;
 
-  version = "7.1.3-soryu-lfbmq-x86-64v2-lto";
-  modDirVersion = "7.1.3";
+  version = "7.1.3-soryu";
+  modDirVersion = "7.1.3-soryu-lfbmq-x86_64-v2";
   pname = "linux-soryu";
   configfile = ./lfbmq.config;
   allowImportFromDerivation = true;
@@ -83,15 +83,15 @@ in
         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
       fi
 
-      echo "=== gercek LLVM binary testi ==="
+      echo "=== LLVM Binary Test ==="
       ${llvmAR} --version 2>&1 | head -3
       ${llvmNM} --version 2>&1 | head -3
       echo "=== end ==="
 
-      echo "=== HAS_LTO_CLANG / LTO durumu (tam, pozitif+negatif) ==="
+      echo "=== HAS_LTO_CLANG / LTO info ==="
       grep -E "CONFIG_(HAS_LTO_CLANG|LTO_CLANG_THIN|LTO_CLANG_FULL|LTO_NONE|LTO_CLANG|^LTO)\b" "$cfgPath"
       echo "=== end ==="
 
-      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig sonrasi aktif degil"; exit 1; }
+      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN is not active (olddefconfig)"; exit 1; }
     '';
   })
