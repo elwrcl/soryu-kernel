@@ -47,20 +47,26 @@ let
     '';
   };
 in
+
+let
+  llvmLD = "${pkgs.llvmPackages.bintools-unwrapped}/bin/ld.lld";
+  llvmAR = "${pkgs.llvmPackages.bintools-unwrapped}/bin/llvm-ar";
+  llvmNM = "${pkgs.llvmPackages.bintools-unwrapped}/bin/llvm-nm";
+in
 (lib.makeOverridable pkgs.linuxManualConfig {
   stdenv = pkgs.llvmPackages.stdenv;
   src = patchedSrc;
 
   version = "7.1.3-soryu-lfbmq-x86-64v2-lto";
-  modDirVersion = "7.1.3-soryu-lfbmq-x86-64v2-lto";
+  modDirVersion = "7.1.3";
   pname = "linux-soryu";
   configfile = ./lfbmq.config;
   allowImportFromDerivation = true;
   extraMakeFlags = [
     "LLVM=1"
-    "LD=${pkgs.llvmPackages.bintools}/bin/ld.lld"
-    "AR=${pkgs.llvmPackages.bintools}/bin/llvm-ar"
-    "NM=${pkgs.llvmPackages.bintools}/bin/llvm-nm"
+    "LD=${llvmLD}"
+    "AR=${llvmAR}"
+    "NM=${llvmNM}"
   ];
 
   features = {
@@ -70,24 +76,22 @@ in
 }).overrideAttrs
   (old: {
     postConfigure = ''
-       make $makeFlags LLVM=1 LD=${pkgs.llvmPackages.bintools}/bin/ld.lld AR=${pkgs.llvmPackages.bintools}/bin/llvm-ar NM=${pkgs.llvmPackages.bintools}/bin/llvm-nm olddefconfig
+      make $makeFlags LLVM=1 LD=${llvmLD} AR=${llvmAR} NM=${llvmNM} olddefconfig
 
-       cfgPath="''${buildRoot:-.}/.config"
-       if [ ! -f "$cfgPath" ]; then
-         cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
-       fi
+      cfgPath="''${buildRoot:-.}/.config"
+      if [ ! -f "$cfgPath" ]; then
+        cfgPath=$(find . -maxdepth 4 -name .config 2>/dev/null | head -1)
+      fi
 
-       echo "=== LTO bagimlilik zinciri (tam durum) ==="
-       grep -E "CONFIG_(CC_IS_CLANG|LD_IS_LLD|AS_IS_LLVM|HAS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG|ARCH_SUPPORTS_LTO_CLANG_THIN|FTRACE_MCOUNT_USE_RECORDMCOUNT|FTRACE_MCOUNT_USE_OBJTOOL|KASAN\b|KASAN_HW_TAGS|KCOV\b|GCOV_KERNEL|DEBUG_INFO\b|CLANG_VERSION|LTO)\b" "$cfgPath"
-       echo "=== end ==="
+      echo "=== gercek LLVM binary testi ==="
+      ${llvmAR} --version 2>&1 | head -3
+      ${llvmNM} --version 2>&1 | head -3
+      echo "=== end ==="
 
-       echo "=== Gercek AR/NM testi ==="
-       echo "AR=$AR"
-      "$AR" --help 2>&1 | head -1
-       echo "NM=$NM"
-      "$NM" --help 2>&1 | head -1
-       echo "=== end ==="
+      echo "=== HAS_LTO_CLANG / LTO durumu (tam, pozitif+negatif) ==="
+      grep -E "CONFIG_(HAS_LTO_CLANG|LTO_CLANG_THIN|LTO_CLANG_FULL|LTO_NONE|LTO_CLANG|^LTO)\b" "$cfgPath"
+      echo "=== end ==="
 
-       grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig sonrasi aktif degil"; exit 1; }
+      grep -q '^CONFIG_LTO_CLANG_THIN=y$' "$cfgPath" || { echo "ERROR: LTO_CLANG_THIN olddefconfig sonrasi aktif degil"; exit 1; }
     '';
   })
